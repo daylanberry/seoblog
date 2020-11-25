@@ -33,7 +33,7 @@ exports.signup = (req, res) => {
       }
 
       return res.json({
-        message: 'Singup success! Please signin'
+        message: 'Signup success! Please signin'
       })
     })
   })
@@ -57,7 +57,32 @@ exports.signin = (req, res) => {
       })
     }
 
+    const token = jwt.sign({_id: user._id}, process.env.JWT_SECRET, {expiresIn: '1d'})
+
+    res.cookie('token', token, { expiresIn: '1d' })
+
+    const { _id, username, name, email, role } = user;
+
+    return res.json({
+      token,
+      user: { _id, username, name, email, role }
+    })
 
   })
 
 }
+
+exports.signout = (req, res) => {
+
+  res.clearCookie(('token'))
+
+  res.json({
+    mesasge: 'Signout success'
+  })
+
+};
+
+exports.requireSignin = expressJwt({
+  secret: process.env.JWT_SECRET,
+  algorithms: ['HS256']
+})
