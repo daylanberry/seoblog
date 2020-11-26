@@ -6,7 +6,6 @@
     <>
       <Header />
         {children}
-      <p>Footer</p>
     </>
   )
 

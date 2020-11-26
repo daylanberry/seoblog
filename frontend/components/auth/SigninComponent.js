@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
-import { signup, isAuth } from '../../actions/auth';
-import Router from 'next/router'
+import { signin, authenticate, isAuth } from '../../actions/auth';
+import Router from 'next/router';
 
-const SignupComponent = () => {
+const SigninComponent = () => {
 
   const [values, setValues] = useState({
-    name: '',
     email: '',
     password: '',
     error: '',
@@ -21,25 +20,32 @@ const SignupComponent = () => {
     }
   })
 
-  const { name, email, password, error, loading, message, showForm } = values;
+  const { email, password, error, loading, message, showForm } = values;
 
   const handleSubmit = (e) => {
     e.preventDefault()
 
     setValues({...values, loadng: true, error: false})
-    const user = { name, email, password }
+    const user = { email, password }
 
 
-    signup(user)
+    signin(user)
       .then((data) => {
 
-        console.log('data', data)
-
-        if (data && data.error.length) {
+        if (data && data.error) {
           setValues({...values, error: data.error, loading: false})
         } else {
-
-          setValues({...values, name: '', email: '', password: '', error: '', loading: false, message: data.message, showForm: false })
+          // save user token to cookie
+          // save user info to localstorage
+          // authenticate user
+          authenticate(data, () => {
+            console.log(isAuth())
+            if (isAuth() && isAuth().role === 1) {
+              Router.push('/admin')
+            } else {
+              Router.push('/user')
+            }
+          })
         }
       })
 
@@ -77,19 +83,10 @@ const SignupComponent = () => {
   }
 
 
-  const signupForm = () => {
+  const signinForm = () => {
 
     return (
       <form onSubmit={handleSubmit}>
-        <div className='form-group'>
-          <input
-            type='text'
-            className='form-control'
-            placeholder='Type your name'
-            value={name}
-            onChange={handleChange('name')}
-          />
-        </div>
         <div className='form-group'>
           <input
             type='email'
@@ -109,7 +106,7 @@ const SignupComponent = () => {
           />
         </div>
         <div>
-          <button className='btn btn-primary'>Sign up</button>
+          <button className='btn btn-primary'>Signin</button>
         </div>
       </form>
     )
@@ -120,9 +117,9 @@ const SignupComponent = () => {
       {showError()}
       {showLoading()}
       {showMessage()}
-      {showForm && signupForm()}
+      {showForm && signinForm()}
     </>
   )
 }
 
-export default SignupComponent;
+export default SigninComponent;
