@@ -29,8 +29,6 @@ const Tag = () => {
     getTags()
       .then(data => {
 
-        console.log(data)
-
         if (data.error) {
           console.log(data.error)
         }
@@ -44,7 +42,7 @@ const Tag = () => {
   }
 
   const deleteConfirm = (slug) => {
-    let answer = window.confirm('Are you sure you want to delete this Tag?')
+    let answer = window.confirm('Are you sure you want to delete this tag?')
 
     if (answer) {
       deleteTag(slug)
@@ -74,15 +72,15 @@ const Tag = () => {
 
   const showTags = () => {
 
-    return tags.map((cat, i) => {
+    return tags.map((tag, i) => {
       return (
         <button
           key={i}
           title='double click to delete'
           className='btn btn-outline-primary mr-1 ml-1 mt-3'
-          onDoubleClick={() => deleteConfirm(cat.slug)}
+          onDoubleClick={() => deleteConfirm(tag.slug)}
         >
-          {cat.name}
+          {tag.name}
         </button>
       )
     })

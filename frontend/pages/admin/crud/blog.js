@@ -1,23 +1,20 @@
 import Layout from '../../../components/Layout';
 import Admin from '../../../components/auth/Admin';
-import Category from '../../../components/crud/Category';
-import Tag from '../../../components/crud/Tag'
+import BlogCreate from '../../../components/crud/BlogCreate';
+
 import Link from 'next/link';
 
-const CategoryTag = () => {
+const Blog = () => {
 
   return (
     <Layout>
       <Admin>
         <div className='row pl-5 pr-5'>
           <div className='col-md-12 pt-5 pb-5'>
-            <h2>Manage Categories and Tags</h2>
+            <h2>Create a new blog</h2>
           </div>
-          <div className='col-md-6'>
-            <Category />
-          </div>
-          <div className='col-md-6'>
-            <Tag />
+          <div className='col-md-12'>
+            <BlogCreate />
           </div>
         </div>
       </Admin>
@@ -25,4 +22,4 @@ const CategoryTag = () => {
   )
 }
 
-export default CategoryTag;
+export default Blog;
