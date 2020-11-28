@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { APP_NAME } from '../config.js';
 import Link from 'next/link';
+import NProgress from 'nprogress';
 import { signout, isAuth } from '../actions/auth';
 import Router from 'next/router';
 
@@ -19,6 +20,25 @@ import {
   NavbarText
 } from 'reactstrap';
 
+import '.././node_modules/nprogress/nprogress.css'
+
+if (typeof window !== "undefined") {
+  NProgress.configure({
+    showSpinner: false
+  });
+
+  Router.events.on("routeChangeStart", () => {
+    NProgress.start();
+  });
+
+  Router.events.on("routeChangeComplete", () => {
+    NProgress.done();
+  });
+
+  Router.events.on("routeChangeError", () => {
+    NProgress.done();
+  });
+}
 
 const Header = (props) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -53,7 +73,12 @@ const Header = (props) => {
                   </NavItem>
                 </>
               ) : (
-                <NavItem>
+                <NavItem style={{display: 'flex'}}>
+                  <Link href={isAuth().role === 1 ? '/admin' : '/user'}>
+                    <NavLink>
+                      {`${isAuth().name}'s Dashboard`}
+                    </NavLink>
+                  </Link>
                   <NavLink
                     style={{cursor: 'pointer'}}
                     onClick={() => signout(() => Router.replace('/signin'))}

@@ -8,7 +8,10 @@ require('dotenv').config();
 
 const blogRoutes = require('./routes/blog');
 const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/user')
+const userRoutes = require('./routes/user');
+const categoryRoutes = require('./routes/category');
+const tagRoutes = require('./routes/tag');
+const User = require('./models/user')
 
 const app = express();
 
@@ -30,6 +33,16 @@ if (process.env.NODE_ENV === 'development') {
 app.use('/api', blogRoutes)
 app.use('/api', authRoutes)
 app.use('/api', userRoutes)
+app.use('/api', categoryRoutes)
+app.use('/api', tagRoutes)
+// app.post('/api/update', async (req, res) => {
+
+//   const user = await User.findOne({email: 'd@gmail.com'})
+
+//   user.role = 1
+//   await user.save()
+//   res.send(user)
+// })
 
 const port = process.env.PORT || 8000;
 
