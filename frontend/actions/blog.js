@@ -14,9 +14,10 @@ export const createBlog = (blog, token) => {
 }
 
 
-export const listBlogsWithCategoriesAndTags = () => {
+export const listBlogsWithCategoriesAndTags = (skip, limit) => {
+  const data = { skip, limit }
 
-  return axios.post(`${API}/api/blogs-categories-tags`)
+  return axios.post(`${API}/api/blogs-categories-tags`, data)
     .then(res => res.data)
     .catch(err => err.response.data)
 }
