@@ -10,5 +10,13 @@ export const createBlog = (blog, token) => {
     }
   })
     .then(res => res.data)
-    .catch(err => err.response)
+    .catch(err => err.response.data)
+}
+
+
+export const listBlogsWithCategoriesAndTags = () => {
+
+  return axios.post(`${API}/api/blogs-categories-tags`)
+    .then(res => res.data)
+    .catch(err => err.response.data)
 }

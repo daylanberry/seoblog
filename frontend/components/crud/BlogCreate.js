@@ -10,7 +10,8 @@ import dynamic from 'next/dynamic';
 import { withRouter } from 'next/router';
 const ReactQuill = dynamic(import('react-quill'), { ssr: false, loading: () => <p>Loading ...</p> }
 );
-import '../../node_modules/react-quill/dist/quill.snow.css'
+import '../../node_modules/react-quill/dist/quill.snow.css';
+import { QuillModules, QuillFormats } from '../../helpers/quill';
 
 const BlogCreate = ({router}) => {
 
@@ -44,11 +45,13 @@ const BlogCreate = ({router}) => {
   });
 
   const { error, sizeError, success, formData, title, hidePublishButton} = values;
+  const token = getCookie('token');
 
   const initCategories = () => {
     return getCategories()
       .then(data => {
         if (data.error) {
+          console.log('errr', data.error)
           setValues({
             ...values,
             error: data.error
@@ -86,6 +89,23 @@ const BlogCreate = ({router}) => {
 
   const publishBlog = (e) => {
     e.preventDefault()
+
+    return createBlog(formData, token)
+      .then((data) => {
+        console.log('data', data)
+
+        if (data && data.error) {
+          setValues({
+            ...values,
+            error: data.error
+          })
+        } else {
+          setValues({...values, title: '', error: '', success: `A new blog titled: "${data.title}" is created`})
+          setBody('');
+          setCategories([]);
+          setTags([]);
+        }
+      })
   }
 
   const handleChange = (name) => e => {
@@ -174,7 +194,17 @@ const BlogCreate = ({router}) => {
     )
   }
 
+  const showError = () => (
+    <div className='alert alert-danger' style={{display: error ? '' : 'none'}}>
+      {error}
+    </div>
+  )
 
+  const showSuccess = () => (
+    <div className='alert alert-success' style={{display: success ? '' : 'none'}}>
+      {success}
+    </div>
+  )
 
   const createBlogForm = () => {
     return (
@@ -191,8 +221,8 @@ const BlogCreate = ({router}) => {
 
         <div className='form-group'>
           <ReactQuill
-            modules={BlogCreate.modules}
-            formats={BlogCreate.formats}
+            modules={QuillModules}
+            formats={QuillFormats}
             value={body}
             placeholder='Write something amazing'
             onChange={handleBody}
@@ -212,17 +242,22 @@ const BlogCreate = ({router}) => {
   }
 
   return (
-    <div className='container-fluid'>
+    <div className='container-fluid pb-5'>
       <div className='row'>
 
         <div className='col-md-8'>
           <h2>Create blog form</h2>
           {createBlogForm()}
+          <div className='pt-3'>
+            {showError()}
+            {showSuccess()}
+          </div>
         </div>
+
 
         <div className='col-md-4'>
           <div>
-            <div classNAme='form-group pb-2'>
+            <div className='form-group pb-2'>
               <h5>Featured image</h5>
               <hr />
 
@@ -250,47 +285,5 @@ const BlogCreate = ({router}) => {
   )
 }
 
-BlogCreate.modules = {
-  toolbar: [
-    [{
-      header: '1'
-    }, {
-      header: '2'
-    }, {
-      header: [3, 4, 5, 6]
-    }, {
-      font: []
-    }],
-    [{
-      size: []
-    }],
-    ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-    [{
-      list: 'ordered'
-    }, {
-      list: 'bullet'
-    }],
-    ['link', 'image', 'video'],
-    ['clean'],
-    ['code-block']
-  ]
-};
-
-BlogCreate.formats = [
-  'header',
-  'font',
-  'size',
-  'bold',
-  'italic',
-  'underline',
-  'strike',
-  'blockquote',
-  'list',
-  'bullet',
-  'link',
-  'image',
-  'video',
-  'code-block'
-];
 
 export default withRouter(BlogCreate)
