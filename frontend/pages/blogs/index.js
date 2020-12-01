@@ -39,6 +39,31 @@ const Blogs = ({blogs, categories, tags, totalBlogs, blogsLimit, blogSkip, route
   const [size, setSize] = useState(totalBlogs);
   const [loadedBlogs, setLoadedBlogs] = useState([]);
 
+  const loadMore = () => {
+    let toSkip = skip + limit;
+
+    return listBlogsWithCategoriesAndTags(toSkip, limit)
+      .then(data => {
+
+        if (data.error) {
+          console.log(data.error)
+        } else {
+          setLoadedBlogs([...loadedBlogs, ...data.blogs])
+          setSize(data.size)
+          setSkip(skip)
+        }
+      })
+  }
+
+  const loadMoreButton = () => {
+
+    return (
+      size >= limit && (
+        <button onClick={loadMore} className='btn btn-outline-primary btn-lg'>Load more</button>
+      )
+    )
+  }
+
 
   const showAllBlogs = () => {
     return blogs.map((blog, i) => (
@@ -48,7 +73,6 @@ const Blogs = ({blogs, categories, tags, totalBlogs, blogsLimit, blogSkip, route
       </article>
     ))
   }
-
 
   const showAllCategories = () => {
 
@@ -65,6 +89,15 @@ const Blogs = ({blogs, categories, tags, totalBlogs, blogsLimit, blogSkip, route
       <Link href={`/tags/${t.slug}`} key={i}>
         <a className='btn btn-outline-primary mr-1 ml-1 mt-3'>{t.name}</a>
       </Link>
+    ))
+  }
+
+  const showLoadedBlogs = () => {
+
+    return loadedBlogs.map((blog, i) => (
+      <article key={i}>
+        <Card blog={blog} />
+      </article>
     ))
   }
 
@@ -91,9 +124,13 @@ const Blogs = ({blogs, categories, tags, totalBlogs, blogsLimit, blogSkip, route
             </header>
           </div>
           <div className='container-fluid'>
-            <div className='row'>
-              <div className='col-md-12'>{showAllBlogs()}</div>
-            </div>
+            {showAllBlogs()}
+          </div>
+          <div className='container-fluid'>
+            {showLoadedBlogs()}
+          </div>
+          <div className='text-center pt-5 pb-5'>
+            {loadMoreButton()}
           </div>
         </main>
       </Layout>

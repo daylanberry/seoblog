@@ -21,3 +21,17 @@ export const listBlogsWithCategoriesAndTags = (skip, limit) => {
     .then(res => res.data)
     .catch(err => err.response.data)
 }
+
+export const singleBlog = (slug) => {
+
+  return axios.get(`${API}/api/blog/${slug}`)
+    .then(res => res.data)
+    .catch(err => err.response.data)
+}
+
+export const relatedBlogs = (blog, limit) => {
+
+  return axios.post(`${API}/api/blogs/related`, {blog, limit})
+    .then(res => res.data)
+    .catch(err => console.log(err))
+}

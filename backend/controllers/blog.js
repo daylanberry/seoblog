@@ -56,8 +56,8 @@ exports.create = (req, res) => {
     blog.slug = slugify(title).toLowerCase()
     blog.excerpt = smartTrim(body, 320, ' ', ' ...');
     blog.body = body
-    blog.mTitle = `${title} | ${process.env.APP_NAME}`
-    blog.mDesc = stripHtml(body.substring(0, 160)).result;
+    blog.mtitle = `${title} | ${process.env.APP_NAME}`
+    blog.mdesc = stripHtml(body.substring(0, 160)).result;
     blog.postedBy = req.user._id
 
     let arrayOfCategories = categories && categories.split(',')
@@ -314,6 +314,27 @@ exports.photo = (req, res) => {
     })
 }
 
+
+exports.listRelated = (req, res) => {
+  let limit = req.body.limit ? parseInt(req.body.limit) : 3
+
+  const { _id, categories }  = req.body.blog
+
+  Blog.find({_id: {$ne: _id }, categories: {$in: categories }})
+    .limit(limit)
+    .populate('postedBy', '_id name profile')
+    .select('title slug excerpt postedBy createdAt updatedAt')
+    .exec((err, blogs) => {
+
+      if (err) {
+        return res.status(400).json({
+          error: 'Blogs not found'
+        })
+      }
+
+      res.json(blogs)
+    })
+}
 
 
 
