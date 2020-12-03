@@ -1,4 +1,4 @@
-import { createBlog } from '../../actions/blog';
+import { singleBlog, updateBlog } from '../../actions/blog';
 import { getCookie, isAuth } from '../../actions/auth';
 import { getCategories } from '../../actions/category';
 import { getTags } from '../../actions/tag';
@@ -12,46 +12,59 @@ const ReactQuill = dynamic(import('react-quill'), { ssr: false, loading: () => <
 );
 import '../../node_modules/react-quill/dist/quill.snow.css';
 import { QuillModules, QuillFormats } from '../../helpers/quill';
+import { API } from '../../config';
 
-const BlogCreate = ({router}) => {
+const BlogUpdate = ({router}) => {
 
-  const blogFromLS = () => {
-
-    if (typeof window === 'undefined') return false
-
-    if (localStorage.getItem('blog')) {
-      return JSON.parse(localStorage.getItem('blog'))
-    } else {
-      return false
-    }
-  }
-
+  const [body, setBody] = useState('');
   const [categories, setCategories] = useState([]);
   const [tags, setTags] = useState([]);
 
   // categories
   const [checked, setChecked] = useState([]);
-  // tags
   const [checkedTags, setCheckedTags] = useState([]);
 
-  const [body, setBody] = useState(blogFromLS());
   const [values, setValues] = useState({
+    title: '',
     error: '',
-    sizeError: '',
     success: '',
     formData: '',
-    title: '',
-    hidePublishButton: false
   });
 
-  const { error, sizeError, success, formData, title, hidePublishButton} = values;
+  const { title, error, success, formData } = values;
   const token = getCookie('token');
+
+  useEffect(() => {
+    setValues({...values, formData: new FormData()})
+    initBlog()
+    initCategories()
+    initTags()
+
+  }, [router])
+
+  const initBlog = () => {
+
+    if (router.query.slug) {
+      return singleBlog(router.query.slug)
+        .then(data => {
+          if (data.error) {
+            console.log(data.error)
+          }
+          setValues({...values, title: data.title})
+          setBody(data.body)
+          setChecked(data.categories.map(c => c._id))
+          setCheckedTags(data.tags.map(t => t._id))
+
+        })
+      }
+    }
+
 
   const initCategories = () => {
     return getCategories()
       .then(data => {
         if (data.error) {
-          console.log('errr', data.error)
+          console.log(data.error)
           setValues({
             ...values,
             error: data.error
@@ -77,92 +90,6 @@ const BlogCreate = ({router}) => {
       })
   }
 
-  useEffect(() => {
-    setValues({
-      ...values,
-      formData: new FormData()
-    })
-
-    initCategories()
-    initTags()
-  }, [router])
-
-  const publishBlog = (e) => {
-    e.preventDefault()
-
-    return createBlog(formData, token)
-      .then((data) => {
-        console.log('data', data)
-
-        if (data && data.error) {
-          setValues({
-            ...values,
-            error: data.error
-          })
-        } else {
-          setValues({...values, title: '', error: '', success: `A new blog titled: "${data.title}" is created`})
-          setBody('');
-          setCategories([]);
-          setTags([]);
-        }
-      })
-  }
-
-  const handleChange = (name) => e => {
-
-    const value = name === 'photo' ? e.target.files[0] : e.target.value
-    formData.set(name, value);
-
-    setValues({
-      ...values,
-      [name]: value,
-      formData,
-      error: ''
-    })
-  }
-
-  const handleBody = (e) => {
-    setBody(e)
-    formData.set('body', e)
-
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('blog', JSON.stringify(e))
-    }
-  }
-
-
-  const showCategories = () => {
-    return (
-      categories && categories.map((cat, i) => (
-        <li className='list-unstyled' key={i}>
-          <input
-            className='mr-r'
-            type='checkbox'
-            style={{marginRight: '10px'}}
-            onChange={handleToggle(cat._id)}
-            />
-          <label className='form-check-label'>{cat.name}</label>
-        </li>
-      ))
-    )
-  }
-
-  const showTags = () => {
-    return (
-      tags && tags.map((tag, i) => (
-        <li className='list-unstyled' key={i}>
-          <input
-            className='mr-r'
-            type='checkbox'
-            style={{marginRight: '10px'}}
-            onChange={handleTagsToggle(tag._id)}
-            />
-          <label className='form-check-label'>{tag.name}</label>
-        </li>
-      ))
-      )
-    }
-
   const handleToggle = (id) => () => {
     setValues({...values, error: ''});
 
@@ -176,7 +103,9 @@ const BlogCreate = ({router}) => {
     }
     setChecked(all)
     formData.set('categories', all)
+
   }
+
 
   const handleTagsToggle = (id) => () => {
     setValues({...values, error: ''});
@@ -196,21 +125,95 @@ const BlogCreate = ({router}) => {
   }
 
 
+  const showCategories = () => {
+
+    return (
+      categories && categories.map((cat, i) => (
+        <li className='list-unstyled' key={i}>
+          <input
+            className='mr-r'
+            type='checkbox'
+            checked={checked.includes(cat._id)}
+            style={{marginRight: '10px'}}
+            onChange={handleToggle(cat._id)}
+          />
+          <label className='form-check-label'>{cat.name}</label>
+        </li>
+      ))
+    )
+  }
+
+
+  const showTags = () => {
+    return (
+      tags && tags.map((tag, i) => (
+        <li className='list-unstyled' key={i}>
+          <input
+            className='mr-r'
+            type='checkbox'
+            checked={checkedTags.includes(tag._id)}
+            style={{marginRight: '10px'}}
+            onChange={handleTagsToggle(tag._id)}
+          />
+          <label className='form-check-label'>{tag.name}</label>
+        </li>
+      ))
+    )
+  }
+
+  const handleChange = (name) => e => {
+
+    const value = name === 'photo' ? e.target.files[0] : e.target.value
+    formData.set(name, value);
+
+    setValues({
+      ...values,
+      [name]: value,
+      formData,
+      error: ''
+    })
+  }
+
+  const handleBody = (e) => {
+    setBody(e)
+    formData.set('body', e)
+  }
+
+
+  const editBlog = (e) => {
+    e.preventDefault();
+
+    return updateBlog(formData, token, router.query.slug)
+      .then(data => {
+        if (data.error) {
+          setValues({...values, error: data.error})
+        }
+
+        setValues({...values, title: '', success: `Blog titled ${data.title} is successfully updated`})
+
+        if (isAuth() && isAuth().role === 1) {
+          Router.replace(`/admin`)
+
+        } else if (isAuth() && isAuth().role === 0) {
+
+          Router.replace(`/user`)
+        }
+
+      })
+  }
+
   const showError = () => (
-    <div className='alert alert-danger' style={{display: error ? '' : 'none'}}>
-      {error}
-    </div>
+    <div className='alert alert-danger' style={{display: error ? '': 'none'}}>{error}</div>
   )
 
   const showSuccess = () => (
-    <div className='alert alert-success' style={{display: success ? '' : 'none'}}>
-      {success}
-    </div>
+    <div className='alert alert-success' style={{display: success ? '': 'none'}}>{success}</div>
   )
 
-  const createBlogForm = () => {
+
+  const updateBlogForm = () => {
     return (
-      <form onSubmit={publishBlog}>
+      <form onSubmit={editBlog}>
         <div className='form-group'>
           <label className='text-muted'>Title</label>
           <input
@@ -236,7 +239,7 @@ const BlogCreate = ({router}) => {
             type='submit'
             className='btn btn-primary'
           >
-            Publish
+            Update
           </button>
         </div>
       </form>
@@ -248,14 +251,18 @@ const BlogCreate = ({router}) => {
       <div className='row'>
 
         <div className='col-md-8'>
-          <h2>Create blog form</h2>
-          {createBlogForm()}
+          {updateBlogForm()}
           <div className='pt-3'>
             {showError()}
             {showSuccess()}
+            <hr />
           </div>
-        </div>
 
+          <img
+            src={`${API}/api/blog/photo/${router.query.slug}`} alt='title'
+            style={{width: '100%'}}
+          />
+        </div>
 
         <div className='col-md-4'>
           <div>
@@ -279,7 +286,6 @@ const BlogCreate = ({router}) => {
             <hr />
             <ul style={{maxHeight: '200px', overflowY: 'scroll'}}>{showTags()}</ul>
           </div>
-
         </div>
       </div>
 
@@ -287,5 +293,4 @@ const BlogCreate = ({router}) => {
   )
 }
 
-
-export default withRouter(BlogCreate)
+export default withRouter(BlogUpdate);

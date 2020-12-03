@@ -64,7 +64,7 @@ const Header = (props) => {
               </NavItem>
             </>
             {
-              isAuth() && (
+              isAuth() ? (
                 <NavItem style={{display: 'flex'}}>
                   <Link href={isAuth().role === 1 ? '/admin' : '/user'}>
                     <NavLink>
@@ -78,6 +78,23 @@ const Header = (props) => {
                     Sign out
                   </NavLink>
                 </NavItem>
+              ) : (
+                <>
+                <NavItem>
+                  <Link href='/signup'>
+                    <NavLink>
+                      Signup
+                    </NavLink>
+                  </Link>
+                </NavItem>
+                <NavItem>
+                  <Link href='/signin'>
+                    <NavLink>
+                      Signin
+                    </NavLink>
+                  </Link>
+                </NavItem>
+                </>
               )
             }
           </Nav>

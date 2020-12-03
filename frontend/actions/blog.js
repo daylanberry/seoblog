@@ -35,3 +35,36 @@ export const relatedBlogs = (blog, limit) => {
     .then(res => res.data)
     .catch(err => console.log(err))
 }
+
+
+export const list = () => {
+
+  return axios.get(`${API}/api/blogs`)
+    .then(res => res.data)
+    .catch(err => err)
+}
+
+export const removeBlog = (slug, token) => {
+
+  return axios.delete(`${API}/api/blog/${slug}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json'
+      }
+    })
+    .then(res => res.data)
+    .catch(err => err)
+}
+
+
+export const updateBlog = (blog, token, slug) => {
+
+  return axios.put(`${API}/api/blog/${slug}`, blog, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/json'
+    }
+  })
+    .then(res => res.data)
+    .catch(err => err.response.data)
+}
