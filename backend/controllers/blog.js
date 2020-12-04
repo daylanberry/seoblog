@@ -184,7 +184,6 @@ exports.listAllBlogsCategoriesTags = (req, res) => {
 }
 
 exports.read = (req, res) => {
-  // 4:30
 
   const slug = req.params.slug.toLowerCase();
 
@@ -201,7 +200,6 @@ exports.read = (req, res) => {
           error: errorHandler(err)
         })
       }
-
       res.json(data)
     })
 }
@@ -216,7 +214,6 @@ exports.remove = (req, res) => {
       return res.json({
         error: errorHandler(err)
       })
-
     }
 
     res.json({
@@ -322,7 +319,7 @@ exports.listRelated = (req, res) => {
 
   Blog.find({_id: {$ne: _id }, categories: {$in: categories }})
     .limit(limit)
-    .populate('postedBy', '_id name profile')
+    .populate('postedBy', '_id username name profile')
     .select('title slug excerpt postedBy createdAt updatedAt')
     .exec((err, blogs) => {
 
