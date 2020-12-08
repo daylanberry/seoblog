@@ -11,7 +11,9 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
 const categoryRoutes = require('./routes/category');
 const tagRoutes = require('./routes/tag');
-const User = require('./models/user')
+const formRoutes = require('./routes/form');
+
+const User = require('./models/user');
 
 const app = express();
 
@@ -35,6 +37,7 @@ app.use('/api', authRoutes)
 app.use('/api', userRoutes)
 app.use('/api', categoryRoutes)
 app.use('/api', tagRoutes)
+app.use('/api', formRoutes)
 // app.post('/api/update', async (req, res) => {
 
 //   const user = await User.findOne({email: 'd@gmail.com'})
