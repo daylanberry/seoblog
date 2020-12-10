@@ -256,7 +256,6 @@ const BlogCreate = ({router}) => {
           </div>
         </div>
 
-
         <div className='col-md-4'>
           <div>
             <div className='form-group pb-2'>
@@ -279,8 +278,8 @@ const BlogCreate = ({router}) => {
             <hr />
             <ul style={{maxHeight: '200px', overflowY: 'scroll'}}>{showTags()}</ul>
           </div>
-
         </div>
+
       </div>
 
     </div>

@@ -23,7 +23,6 @@ exports.contactForm = (req, res) => {
   sgMail
     .send(emailData)
     .then((sent) => {
-      console.log(sent)
 
       return res.json({
         success: true
@@ -37,7 +36,7 @@ exports.contactBlogAuthorForm = (req, res) => {
   let mailList = [authorEmail, process.env.EMAIL_TO]
 
   const emailData = {
-    to: mailList,
+    to: authorEmail,
     from: email,
     subject: `Someone messaged you from - ${process.env.APP_NAME}`,
     text: `Email received from contact from \n Sender name: ${name} \n Sender email: ${email} \n Sender message: ${message}`,
@@ -60,4 +59,5 @@ exports.contactBlogAuthorForm = (req, res) => {
         success: true
       })
     })
+    .catch(err => err)
 }

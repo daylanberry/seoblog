@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { signin, authenticate, isAuth } from '../../actions/auth';
 import Router from 'next/router';
+import Link from 'next/link';
 
 const SigninComponent = () => {
 
@@ -32,7 +33,7 @@ const SigninComponent = () => {
     signin(user)
       .then((data) => {
 
-        if (data && data.error) {
+        if (!data || data && data.error) {
           setValues({...values, error: data.error, loading: false})
         } else {
           // save user token to cookie
@@ -117,6 +118,10 @@ const SigninComponent = () => {
       {showLoading()}
       {showMessage()}
       {showForm && signinForm()}
+      <br/>
+      <Link href='/auth/password/forgot'>
+        <a className='btn btn-outline-danger btn-sm'>Forgot Password</a>
+      </Link>
     </>
   )
 }

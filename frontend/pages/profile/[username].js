@@ -4,9 +4,36 @@ import Layout from '../../components/Layout';
 import { useState } from 'react';
 import { userPublicProfile } from '../../actions/user';
 import moment from 'moment';
-import { API, DOMAIN, APP_NAME, FB_APP_ID } from '../../config'
+import { API, DOMAIN, APP_NAME, FB_APP_ID } from '../../config';
+import ContactForm from '../../components/form/ContactForm';
 
-const UserProfile = ({user, blogs}) => {
+const UserProfile = ({user, blogs, query}) => {
+
+  const head = () => {
+    return (
+      <Head>
+        <title>{user.username} | {APP_NAME}</title>
+        <meta
+          name='description'
+          content={`Blogs by ${user.username}`}
+        />
+        <link rel='canonical' href={`${DOMAIN}/profile/${query.username}`} />
+        <meta property='og:title' content={`${user.username} | ${APP_NAME}`} />
+        <meta
+          property='og:description'
+          content={`Blogs by ${user.username}`}
+        />
+        <meta property='og:type' content='website' />
+        <meta property='og:url' content={`${DOMAIN}/profile/${query.username}`} />
+        <meta property='og:site_name' content={`${APP_NAME}`}/>
+
+        <meta property='og:image' content={`${DOMAIN}/static/images/seoblog.jpg`} />
+      <meta property='og:image:secure_url' content={`${DOMAIN}/static/images/seoblog.jpg`} />
+      <meta property='og:image:type' content='/image/jpg' />
+      <meta property='fb:app_id' content={`${FB_APP_ID}`} />
+      </Head>
+    )
+  }
 
   const showUserBlogs = () => {
 
@@ -23,6 +50,7 @@ const UserProfile = ({user, blogs}) => {
 
   return (
     <>
+      {head()}
       <Layout>
         <div className='container'>
           <div className='row'>
@@ -30,10 +58,19 @@ const UserProfile = ({user, blogs}) => {
               <div className='card'>
                 <div className='card-body'>
                   <h5>{user.name}</h5>
-                  <Link href={`${user.profile}`}>
-                    <a>View profile</a>
-                  </Link>
-                  <p className='text-muted'>Joined {moment(user.createAt).fromNow()}</p>
+                  <div className='row'>
+                    <div className='col-md-8'>
+                      <p className='text-muted'>Joined {moment(user.createAt).fromNow()}</p>
+                    </div>
+                    <div className='col-md-4'>
+                      <img
+                        src={`${API}/api/user/photo/${user.username}`}
+                        className='img img-fluid mb-5'
+                        style={{maxHeight: '100px', maxWidth: '100%'}}
+                        alt='User profile'
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -64,7 +101,7 @@ const UserProfile = ({user, blogs}) => {
                     Message {user.name}
                   </h5>
                   <br />
-                  <p>Contact form</p>
+                  <ContactForm authorEmail={user.email}/>
                 </div>
               </div>
             </div>
@@ -80,12 +117,11 @@ UserProfile.getInitialProps = ({query}) => {
 
   return userPublicProfile(query.username)
     .then(data => {
-      console.log(data)
 
       if (data.error) {
         console.log(data.error)
       } else {
-        return { user: data.user, blogs: data.blogs }
+        return { user: data.user, blogs: data.blogs, query }
 
       }
 

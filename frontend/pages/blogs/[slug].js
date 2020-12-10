@@ -6,7 +6,8 @@ import { singleBlog, relatedBlogs } from '../../actions/blog';
 import moment from 'moment';
 import renderHTML from 'react-render-html';
 import { API, DOMAIN, APP_NAME, FB_APP_ID } from '../../config'
-import SmallCard from '../../components/blog/SmallCard'
+import SmallCard from '../../components/blog/SmallCard';
+import DisqusThread from '../../components/DisqusThread';
 
 const SingleBlog = ({ blog, query }) => {
 
@@ -82,6 +83,19 @@ const SingleBlog = ({ blog, query }) => {
     )
   }
 
+  const showComments = () => {
+
+    return (
+      <div>
+        <DisqusThread
+          id={blog._id}
+          title={blog.title}
+          path={`/blog/${blog.slug}`}
+        />
+      </div>
+    )
+  }
+
   return (
     <>
       {head()}
@@ -102,7 +116,13 @@ const SingleBlog = ({ blog, query }) => {
                 <div className='container'>
                   <h1 className='display-2 pb-3 text-center font-weight-bold pt-3'>{blog.title}</h1>
                   <p className='lead mt-3 mark'>
-                    Written by {blog.postedBy.name} | Published {moment(blog.updatedAt).fromNow()}
+                    Written by {' '}
+                    <Link href={`/profile/${blog.postedBy.username}`}>
+                      <a>
+                        {blog.postedBy.username} {' '}
+                      </a>
+                    </Link>
+                    | Published {moment(blog.updatedAt).fromNow()}
                   </p>
 
                   <div className='pb-3'>
@@ -129,9 +149,9 @@ const SingleBlog = ({ blog, query }) => {
               </div>
             </div>
 
-            <div className='container pb-5'>
+            <div className='container pb-5 pt-5'>
               <hr />
-              <p>Show comments</p>
+              {showComments()}
             </div>
           </article>
         </main>

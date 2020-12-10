@@ -1,6 +1,23 @@
 import { API }from '../config';
 import axios from 'axios';
 import cookie from 'js-cookie';
+import Router from 'next/router';
+
+export const handleResponse = (response) => {
+
+  if (response.status === 401) {
+    return signout(() => {
+      Router.push({
+        pathname: '/signin',
+        query: {
+          message: 'Your session is expired. Please sign in'
+        }
+      })
+    })
+  } else {
+    return
+  }
+}
 
 export const signup = async (user) => {
 
@@ -31,7 +48,6 @@ export const signout = (next) => {
 export const setCookie = (key, value) => {
 
   if (process.browser) {
-
     cookie.set(key, value, {
       expires: 1
     })
@@ -89,4 +105,48 @@ export const isAuth = () => {
       }
     }
   }
+}
+
+
+export const updateUser = (user, next) => {
+
+  if (process.browser) {
+    if (localStorage.getItem('user')) {
+      let auth = JSON.parse(localStorage.getItem('user'));
+      auth = user;
+      localStorage.setItem('user', JSON.stringify(auth))
+      next();
+    }
+  }
+}
+
+
+export const forgotPassword = email => {
+  return axios.put(`${API}/api/forgot-password`, {email})
+    .then(res => res.data)
+    .catch(err => {
+      if (err && err.response && err.response.data) {
+        return err.response.data
+      } else {
+        return {
+          error: 'something went wrong '
+        }
+      }
+    })
+}
+
+
+export const resetPassword = (resetInfo) => {
+
+  return axios.put(`${API}/api/reset-password`, resetInfo)
+    .then(res => res.data)
+    .catch(err => {
+      if (err && err.response && err.response.data) {
+        return err.response.data
+      } else {
+        return {
+          error: 'something went wrong '
+        }
+      }
+    })
 }

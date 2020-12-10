@@ -28,14 +28,14 @@ const BlogUpdate = ({router}) => {
     title: '',
     error: '',
     success: '',
-    formData: '',
+    formData: new FormData(),
   });
 
   const { title, error, success, formData } = values;
   const token = getCookie('token');
 
   useEffect(() => {
-    setValues({...values, formData: new FormData()})
+    // setValues({...values, formData: new FormData()})
     initBlog()
     initCategories()
     initTags()
@@ -47,13 +47,15 @@ const BlogUpdate = ({router}) => {
     if (router.query.slug) {
       return singleBlog(router.query.slug)
         .then(data => {
-          if (data.error) {
+          if (!data || data.error) {
             console.log(data.error)
+          } else {
+            setValues({...values, title: data.title})
+            setBody(data.body)
+            setChecked(data.categories.map(c => c._id))
+            setCheckedTags(data.tags.map(t => t._id))
+
           }
-          setValues({...values, title: data.title})
-          setBody(data.body)
-          setChecked(data.categories.map(c => c._id))
-          setCheckedTags(data.tags.map(t => t._id))
 
         })
       }
@@ -63,6 +65,7 @@ const BlogUpdate = ({router}) => {
   const initCategories = () => {
     return getCategories()
       .then(data => {
+        if (!data) return
         if (data.error) {
           console.log(data.error)
           setValues({
@@ -79,6 +82,7 @@ const BlogUpdate = ({router}) => {
 
     return getTags()
       .then(data => {
+        if (!data) return
         if (data.error) {
           setValues({
             ...values,
@@ -174,8 +178,9 @@ const BlogUpdate = ({router}) => {
     })
   }
 
-  const handleBody = (e) => {
+  const handleBody = () => (e) => {
     setBody(e)
+    console.log('called')
     formData.set('body', e)
   }
 
@@ -230,7 +235,7 @@ const BlogUpdate = ({router}) => {
             formats={QuillFormats}
             value={body}
             placeholder='Write something amazing'
-            onChange={handleBody}
+            onChange={handleBody()}
           />
         </div>
 

@@ -1,5 +1,6 @@
 import { API }from '../config';
 import axios from 'axios';
+import { handleResponse } from './auth'
 
 export const create = (tag, token) => {
 
@@ -8,15 +9,26 @@ export const create = (tag, token) => {
       'Authorization': `Bearer ${token}`
     }
   })
-    .then(res => res.data)
-    .catch(err => err.response)
+    .then(res => {
+      handleResponse(res)
+      return res.data
+    })
+    .catch(err => {
+      if (err.response && err.response.data) {
+        handleResponse(err.response)
+        return err.response.data
+      }
+    })
 }
 
 
 export const getTags = () => {
 
   return axios.get(`${API}/api/tags`)
-    .then(res => res.data)
+    .then(res => {
+      handleResponse(res)
+      return res.data
+    })
     .catch(err => err.response)
 }
 

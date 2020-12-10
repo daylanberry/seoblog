@@ -61,7 +61,7 @@ exports.read = (req, res) => {
           })
         }
 
-        return res.json({tags: tag, blogs: data})
+        return res.json({ tag, blogs: data })
       })
 
   })

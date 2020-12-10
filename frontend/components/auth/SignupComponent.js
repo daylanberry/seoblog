@@ -121,6 +121,9 @@ const SignupComponent = () => {
       {showLoading()}
       {showMessage()}
       {showForm && signupForm()}
+      <Link href='/auth/password/forgot'>
+        <a className='btn btn-outline-danger btn-sm'>Forgot Password</a>
+      </Link>
     </>
   )
 }
