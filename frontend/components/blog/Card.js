@@ -23,6 +23,8 @@ const Card = ({ blog }) => {
     ))
   }
 
+  if (!blog.postedBy) return <div>Loading...</div>
+
   return (
     <div className='lead pb-4'>
       <header>

@@ -4,46 +4,123 @@ const shortId = require('shortid');
 const jwt = require('jsonwebtoken');
 const expressJwt = require('express-jwt');
 const { errorHandler } = require('../helpers/dbErrorHandler');
-const _ = require('lodash')
+const _ = require('lodash');
+const { OAuth2Client } = require('google-auth-library')
 // sendgrid
 const sgMail = require('@sendgrid/mail')
-sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-exports.signup = (req, res) => {
+exports.preSignup = (req, res) => {
+
   const { name, email, password } = req.body;
 
-  User.findOne({ email }).exec((err, user) => {
+  User.findOne({email: email.toLowerCase()}, (err, user) => {
     if (user) {
       return res.status(400).json({
         error: 'Email is taken'
       })
     }
 
-    let username = shortId.generate()
+    const token = jwt.sign({name, email, password}, process.env.JWT_ACCOUNT_ACTIVATION, { expiresIn: '10m'});
 
-    let profile = `${process.env.CLIENT_URL}/profile/${username}`
+    const emailData = {
+      to: email,
+      from: process.env.EMAIL_FROM,
+      subject: `Account activation link`,
+      html: `
+        <p>Please use the following link to activate your account</p>
+        <p>${process.env.CLIENT_URL}/auth/account/activate/${token}</p>
+        <hr />
+        <p>This email may contain sensitive infromation </p>
+        <p>https://seoblog.com</p>
+      `
+    }
 
-    let newUser = new User({
-      name,
-      email,
-      password,
-      profile,
-      username
-    })
+    sgMail.send(emailData)
+      .then(sent => {
+        return res.json({
+          message: `Email has been sent to ${email}. Follow the instructions to activate your account`
+        })
+      })
 
-    newUser.save((err, success) => {
+  })
+}
+
+// exports.signup = (req, res) => {
+//   const { name, email, password } = req.body;
+
+//   User.findOne({ email }).exec((err, user) => {
+//     if (user) {
+//       return res.status(400).json({
+//         error: 'Email is taken'
+//       })
+//     }
+
+//     let username = shortId.generate()
+
+//     let profile = `${process.env.CLIENT_URL}/profile/${username}`
+
+//     let newUser = new User({
+//       name,
+//       email,
+//       password,
+//       profile,
+//       username
+//     })
+
+//     newUser.save((err, success) => {
+//       if (err) {
+//         return res.status(400).json({
+//           error: err
+//         })
+//       }
+
+//       return res.json({
+//         message: 'Signup success! Please signin'
+//       })
+//     })
+//   })
+// };
+
+exports.signup = (req, res) => {
+  const { token } = req.body;
+
+  if (token) {
+    jwt.verify(token, process.env.JWT_ACCOUNT_ACTIVATION, function(err, decoded){
+
       if (err) {
-        return res.status(400).json({
-          error: err
+        return res.status(401).json({
+          error: 'Expired link. Signup again'
         })
       }
 
-      return res.json({
-        message: 'Signup success! Please signin'
+      const { name, email, password } = jwt.decode(token)
+
+      let username = shortId.generate()
+      let profile = `${process.env.CLIENT_URL}/profile/${username}`
+
+      const user = new User({name, email, password, profile, username})
+
+      user.save((err, user) => {
+        if (err) {
+          return res.status(401).json({
+            error: errorHandler(err)
+          })
+        }
+
+        return res.json({
+          message: 'Sign up success! Please signin.'
+        })
       })
     })
-  })
-};
+  } else {
+
+    return res.json({
+      message: 'Something went wrong. Try again'
+    })
+  }
+
+}
 
 
 exports.signin = (req, res) => {
@@ -246,4 +323,64 @@ exports.resetPassword = (req, res) => {
       })
     })
   }
+}
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
+
+exports.googleLogin = (req, res) => {
+  const idToken = req.body.tokenId;
+
+  client.verifyIdToken({
+    idToken,
+    audience: process.env.GOOGLE_CLIENT_ID
+  })
+    .then(response => {
+      const { email_verified, name, email, jti } = response.payload;
+
+      if (email_verified) {
+        User.findOne({email}).exec((err, user) => {
+          if (user) {
+            const { _id, email, name, role, username } = user;
+            const token = jwt.sign({_id: user._id}, process.env.JWT_SECRET, {expiresIn: '1d'});
+            res.cookie('token', token, { expiresIn: '1d'})
+
+            return res.json({
+              token,
+              user: {_id, email, name, role, username}
+            })
+          } else {
+            let username = shortId.generate()
+            let profile = `${process.env.CLIENT_URL}/profile/${username}`
+            let password = jti
+            user = new User({
+              name,
+              email,
+              profile,
+              username,
+              password
+            })
+            user.save((err, data) => {
+              if (err) {
+                return res.status(400).json({
+                  error: errorHandler(err)
+                })
+              }
+
+              const { _id, email, name, role, username } = data;
+              const token = jwt.sign({_id: data._id}, process.env.JWT_SECRET, {expiresIn: '1d'});
+              res.cookie('token', token, { expiresIn: '1d'})
+
+              return res.json({
+                token,
+                user: {_id, email, name, role, username}
+              })
+            })
+          }
+        })
+      } else {
+        return res.status(400).json({
+          error: 'Google login failed, try again'
+        })
+      }
+    })
 }

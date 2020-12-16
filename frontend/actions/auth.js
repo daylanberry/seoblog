@@ -19,9 +19,16 @@ export const handleResponse = (response) => {
   }
 }
 
-export const signup = async (user) => {
+export const preSignup = async (user) => {
 
-  return axios.post(`${API}/api/signup`, user)
+  return axios.post(`${API}/api/pre-signup`, user)
+    .then(res => res.data)
+    .catch(e => e.response.data)
+}
+
+export const signup = async (token) => {
+
+  return axios.post(`${API}/api/signup`, token)
     .then(res => res.data)
     .catch(e => e.response.data)
 }
@@ -30,7 +37,15 @@ export const signin = (user) => {
 
   return axios.post(`${API}/api/signin`, user)
     .then(res => res.data)
-    .catch(e => e.response.data)
+    .catch(err => {
+      if (err && err.response && err.response.data) {
+        return err.response.data
+      } else {
+        return {
+          error: 'something went wrong'
+        }
+      }
+    })
 }
 
 export const signout = (next) => {
@@ -149,4 +164,20 @@ export const resetPassword = (resetInfo) => {
         }
       }
     })
+}
+
+export const loginWithGoogle = (user) => {
+
+  return axios.post(`${API}/api/google-login`, user)
+    .then(res => res.data)
+    .catch(err => {
+      if (err && err.response && err.response.data) {
+        return err.response.data
+      } else {
+        return {
+          error: 'something went wrong '
+        }
+      }
+    })
+
 }

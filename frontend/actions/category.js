@@ -9,7 +9,15 @@ export const create = (category, token) => {
     }
   })
     .then(res => res.data)
-    .catch(err => err.response)
+    .catch(err => {
+      if (err && err.response && err.response.data) {
+        return err.response.data
+      } else {
+        return {
+          error: 'something went wrong '
+        }
+      }
+    })
 }
 
 
@@ -17,7 +25,15 @@ export const getCategories = () => {
 
   return axios.get(`${API}/api/categories`)
     .then(res => res.data)
-    .catch(err => err.response)
+    .catch(err => {
+      if (err && err.response && err.response.data) {
+        return err.response.data
+      } else {
+        return {
+          error: 'something went wrong '
+        }
+      }
+    })
 }
 
 
@@ -25,7 +41,15 @@ export const singleCategory = (slug) => {
 
   return axios.get(`${API}/api/category/${slug}`)
     .then(res => res.data)
-    .catch(err => err.response)
+    .catch(err => {
+      if (err && err.response && err.response.data) {
+        return err.response.data
+      } else {
+        return {
+          error: 'something went wrong '
+        }
+      }
+    })
 }
 
 
@@ -37,5 +61,13 @@ export const removeCategory = (slug, token) => {
     }
   })
     .then(res => res.data)
-    .catch(err => err.response)
+    .catch(err => {
+      if (err && err.response && err.response.data) {
+        return err.response.data
+      } else {
+        return {
+          error: 'something went wrong '
+        }
+      }
+    })
 }
